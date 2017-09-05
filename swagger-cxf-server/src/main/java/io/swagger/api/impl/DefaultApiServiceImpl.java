@@ -41,7 +41,6 @@ public class DefaultApiServiceImpl implements DefaultApi {
 		for (String s : ids) {
 
 			alItems = new ArrayList<PicklistItem>();
-			// TODO: Implement...
 			Picklist pl = new Picklist();
 			pl.setName("Picklist1");
 			PicklistItem plItem = new PicklistItem();
@@ -60,7 +59,6 @@ public class DefaultApiServiceImpl implements DefaultApi {
 	public List<Picklist> picklistGetSf(String picklistId) throws IllegalStateException, IOException {
 		HttpResponse response = null;
 		StringBuffer result = new StringBuffer();
-		//JsonObject jsonObj = new JsonObject();
 		StringBuffer sbPickList = new StringBuffer();
 		String encodePickList = null;
 		
@@ -104,31 +102,42 @@ public class DefaultApiServiceImpl implements DefaultApi {
 			JsonObject getObject = (JsonObject) jObj.get("d");
 			JsonArray getArray = getObject.getAsJsonArray("results");
 
-			Picklist picklist = new Picklist();
-			picklist.setName("PickListValues");
+
 			
 			for (JsonElement pa : getArray) {
 				JsonObject pickListObj = pa.getAsJsonObject();
 				JsonObject subjObj = (JsonObject) parser.parse(pickListObj.get("picklistOption").toString())
 						.getAsJsonObject();
 				JsonObject pickListOptionObj = (JsonObject) parser.parse(subjObj.get("picklist").toString())
-						.getAsJsonObject();
-
-			
-				
+						.getAsJsonObject();			
 				PicklistItem picklistItem = new PicklistItem();
 				picklistItem.setLabel(pickListObj.get("label").getAsString());
 				picklistItem.setPicklistId(pickListOptionObj.get("picklistId").getAsString());
-				picklistItem.setPicklistId(subjObj.get("id").getAsString());
+				picklistItem.picklistOptionId(subjObj.get("id").getAsString());
 				picklistItem.setExternalCode(subjObj.get("externalCode").getAsString());
 				picklistItem.setLocale(pickListObj.get("locale").getAsString());
 				
-				picklist.addValuesItem(picklistItem);
-				
+
+				boolean bAdd = true;
+				for(Picklist p : ret)
+				{
+					if(p.getName().equals(picklistItem.getPicklistId()))
+					{
+						p.addValuesItem(picklistItem);	
+						bAdd = false;
+						break;
+					}
+							
+				}
+				if(bAdd) {
+					Picklist picklist = new Picklist();
+					picklist.setName(picklistItem.getPicklistId());					
+					picklist.addValuesItem(picklistItem);					
+					ret.add(picklist);				
+				}
 			}
 			
-
-			ret.add(picklist);
+			
 
 		} catch (IOException e) {
 			System.err.println("IOException: " + e.getMessage());
